@@ -11,18 +11,27 @@ func home(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-
-	w.Write([]byte("Hello from Snippetbox"))
+	data := []byte("Hello from Snippetbox")
+	w.Write(data)
 }
 
 // showSnippet is the handler responsible for displaying a specific snippet
 func showSnippet(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display specific snippet..."))
+	data := []byte("Display a specific snippet...")
+	w.Write(data)
 }
 
 // createSnippet will allow the user to create a new snippet
 func createSnippet(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create a new snippet"))
+	// ensure that createSnippet only executes by using a POST request
+	notAllowed := []byte("Method Not Allowed")
+	if r.Method != "POST" {
+		w.WriteHeader(405)
+		w.Write(notAllowed)
+		return
+	}
+	data := []byte("Create a new snippet")
+	w.Write(data)
 }
 
 func main() {
