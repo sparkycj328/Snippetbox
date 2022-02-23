@@ -9,7 +9,7 @@ import (
 )
 
 // home writes a byte slice containing text as the response body when navigated to
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -25,14 +25,14 @@ func home(w http.ResponseWriter, r *http.Request) {
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.serverError(w, err)
 		return
 	}
 
 	err = ts.Execute(w, nil)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.serverError(w, err)
 	}
 
 	data := []byte("Hello from Snippetbox")
@@ -40,11 +40,11 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 // showSnippet is the handler responsible for displaying a specific snippet
-func showSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	// Grab the id passed in the request url
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
+		app.notFound(w)
 		return
 	}
 
@@ -52,12 +52,11 @@ func showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 // createSnippet will allow the user to create a new snippet
-func createSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	// ensure that createSnippet only executes by using a POST request
-	notAllowed := "Method not Allowed"
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
-		http.Error(w, notAllowed, 405)
+		app.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
 	data := []byte("Create a new snippet")
