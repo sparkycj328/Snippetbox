@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -17,7 +16,16 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// load in template files into a slice
+	s, err := app.snippets.Latest()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Create an instance of the templateData struct
+	data := &templateData{Snippets: s}
+
+	//load in template files into a slice
 	files := []string{
 		"../../ui/html/home.page.tmpl",
 		"../../ui/html/base.layout.tmpl",
@@ -26,19 +34,14 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// parse template file
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
 		app.serverError(w, err)
 		return
 	}
 
-	err = ts.Execute(w, nil)
+	err = ts.Execute(w, data)
 	if err != nil {
-		log.Println(err.Error())
 		app.serverError(w, err)
 	}
-
-	data := []byte("Hello from Snippetbox")
-	w.Write(data)
 }
 
 // showSnippet is the handler responsible for displaying a specific snippet
@@ -59,7 +62,27 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%v", s)
+	// Create an instance of a templateData struct holding the snippet data
+	data := &templateData{Snippet: s}
+
+	//load in template files into a slice
+	files := []string{
+		"../../ui/html/show.page.tmpl",
+		"../../ui/html/base.layout.tmpl",
+		"../../ui/html/footer.partial.tmpl",
+	}
+	// parse template file
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// execute the template files
+	err = ts.Execute(w, data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 // createSnippet will allow the user to create a new snippet
