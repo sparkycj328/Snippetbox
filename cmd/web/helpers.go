@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -24,4 +25,24 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 // notFound helper will send a 404 not found response to the user
 func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
+}
+
+// render will retrieve the appropriate template set from the cache based on the page name
+// as well as write the template to a buffer first to check for errors and then will write an http response
+func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td *templateData) {
+	ts, ok := app.templateCache[name]
+	if !ok {
+		app.serverError(w, fmt.Errorf("The template %s does not exist", name))
+		return
+	}
+
+	var buf *bytes.Buffer
+
+	err := ts.Execute(buf, td)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	buf.WriteTo(w)
 }
