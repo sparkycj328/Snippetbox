@@ -60,7 +60,7 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	}
 	defer rows.Close()
 
-	snippets := []*models.Snippet{}
+	var snippets []*models.Snippet
 
 	for rows.Next() {
 		s := &models.Snippet{}
